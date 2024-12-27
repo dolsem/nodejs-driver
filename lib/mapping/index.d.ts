@@ -51,6 +51,10 @@ export namespace mapping {
     forEach(callback: (currentValue: T, index: number) => void, thisArg?: any): void;
 
     toArray(): T[];
+
+    pageState: string;
+
+    length: number;
   }
 
   type MappingExecutionOptions = {
@@ -59,7 +63,7 @@ export namespace mapping {
     logged?: boolean;
     timestamp?: number | Long;
     fetchSize?: number;
-    pageState?: number;
+    pageState?: string;
   }
 
   interface ModelTables {
@@ -72,7 +76,7 @@ export namespace mapping {
 
     batch(items: ModelBatchItem[], executionOptions?: string | MappingExecutionOptions): Promise<Result>;
 
-    forModel<T = any>(name: string): ModelMapper<T>;
+    forModel<T = any, PK = { [key: string]: any }, CK = { [key: string]: any }, D = { [key: string]: any }>(name: string): ModelMapper<T, PK, CK, D>;
   }
 
   type MappingOptions = {
@@ -134,21 +138,21 @@ export namespace mapping {
     update(doc: any, docInfo?: UpdateDocInfo): ModelBatchItem;
   }
 
-  interface ModelMapper<T = any> {
+  interface ModelMapper<T = any, PK = { [key: string]: any }, CK = { [key: string]: any }, D = { [key: string]: any }> {
     name: string;
     batching: ModelBatchMapper;
 
-    get(doc: { [key: string]: any }, docInfo?: { fields?: string[] }, executionOptions?: string | MappingExecutionOptions): Promise<null | T>;
+    get(doc: PK & CK, docInfo?: { fields?: string[] }, executionOptions?: string | MappingExecutionOptions): Promise<null | T>;
 
-    find(doc: { [key: string]: any }, docInfo?: FindDocInfo, executionOptions?: string | MappingExecutionOptions): Promise<Result<T>>;
+    find(doc: PK & CK, docInfo?: FindDocInfo, executionOptions?: string | MappingExecutionOptions): Promise<Result<T>>;
 
     findAll(docInfo?: FindDocInfo, executionOptions?: string | MappingExecutionOptions): Promise<Result<T>>;
 
-    insert(doc: { [key: string]: any }, docInfo?: InsertDocInfo, executionOptions?: string | MappingExecutionOptions): Promise<Result<T>>;
+    insert(doc: D, docInfo?: InsertDocInfo, executionOptions?: string | MappingExecutionOptions): Promise<Result<T>>;
 
-    update(doc: { [key: string]: any }, docInfo?: UpdateDocInfo, executionOptions?: string | MappingExecutionOptions): Promise<Result<T>>;
+    update(doc: D, docInfo?: UpdateDocInfo, executionOptions?: string | MappingExecutionOptions): Promise<Result<T>>;
 
-    remove(doc: { [key: string]: any }, docInfo?: RemoveDocInfo, executionOptions?: string | MappingExecutionOptions): Promise<Result<T>>;
+    remove(doc: PK & Partial<CK>, docInfo?: RemoveDocInfo, executionOptions?: string | MappingExecutionOptions): Promise<Result<T>>;
 
     mapWithQuery(
       query: string,
